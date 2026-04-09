@@ -258,5 +258,17 @@ ls logs/
 2. ~~**「効果」の数字の定義**~~ → 完了（doc/data-schema.md）
 3. ~~**会議体との接続**~~ → 完了（毎月第1金曜朝7時、役員会議冒頭議題）
 4. ~~**申請手順ガイドのフォーマット**~~ → 完了（doc/application-guide-flow.md, doc/account-governance.md, prompts/scaffold-application.md）
-5. **ChatWorkメッセージのフォーマット** — 1通知＝1助成金 か、まとめて1通か
+5. **ChatWorkメッセージのフォーマット** — **作業中**（prompts/chatwork-format.md に方向性確定済み・最終承認待ち）
 6. **prompts/ の初版** — Perplexity Computer に渡す月次リサーチプロンプトの叩き台作成
+
+---
+
+## 次セッションの再開ポイント
+
+オープンクエスチョン5（ChatWork通知フォーマット）の途中で中断。
+再開手順:
+
+1. `prompts/chatwork-format.md` を読む（ChatGPT Proのレビュー反映済みの最終フォーマット案あり）
+2. ユーザーに「この方向でOKか」の最終承認を取る
+3. OKなら同ファイル末尾の「次セッションのTODO」に従って作業を進める
+4. その後、オープンクエスチョン6に進む
