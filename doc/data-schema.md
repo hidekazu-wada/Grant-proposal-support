@@ -24,11 +24,22 @@ data/
 │                  #   ファイル名: YYYY-MM.md（例: 2026-04.md）
 ├── pipeline/      # BOT母集団ログ（候補→議題→採用 の流れを月次で追う）
 │                  #   ファイル名: YYYY-MM.md
-├── adopted/       # 採用された申請案件（1案件=1ファイル）
-│                  #   ファイル名: {case_id}.md
+├── adopted/       # 採用された申請案件（1案件=1フォルダ）
+│   └── {case_id}/
+│       ├── case.md                  # 状態管理（このスキーマ）
+│       ├── 00_preflight.md          # 事前適格性チェック → Go/No-Go
+│       ├── 01_runbook.md            # 制度要点・段取り・必要書類・落とし穴
+│       ├── 02_materials_pack.md     # 質問・claim-evidence matrix・KPI候補
+│       ├── 03_external_brief.md     # 外部委託先への引継ぎ仕様書
+│       ├── 04_submission_log.md     # 提出履歴・差戻し記録
+│       └── evidence/
+│           ├── official/            # 公募要領・FAQ・様式・スケジュール
+│           └── company/             # 決算書・登記・見積・KPI実測値・施設情報
 └── reports/       # 年間ダッシュボード集計
                    #   ファイル名: YYYY.md
 ```
+
+詳細は `doc/application-guide-flow.md` を参照。
 
 ---
 
@@ -126,7 +137,11 @@ impact:
 
 # --- ガバナンス ---
 governance:
-  owner:                                          # 社内担当者
+  owner:                                          # 主担当（必須）
+  backup_owner:                                   # 副担当（必須・属人化防止）
+  submitter:                                      # 実際に申請ボタンを押す人
+  portal:                                         # JGrants / 独自ポータル / 助成金ポータル / e-Gov
+  gbizid_role:                                    # プライム / メンバー
   decision_reason:                                # 採用を決めた理由
   evidence_path:                                  # 関連書類のパス
   notes:
