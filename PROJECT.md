@@ -277,10 +277,33 @@ ls logs/
 
 ## 次セッションの再開ポイント
 
-フェーズ0の正本整備は完了。次はフェーズ1（実装・運用準備）。
+**「続き」と言われたら、まず以下のサマリをユーザーに提示すること。**
 
-**直近のTODO:**
-1. `prompts/traps.md` の fatal/caution 二値化（決定表が機械的に効くようにする）
-2. `prompts/monthly-research.md` を Perplexity Computer にカスタムSkillまたはScheduled Task として登録
-3. GitHub Actions 設置（`data/grants/YYYY-MM.md` push → ChatWork API投稿）
-4. BOT専用ChatWorkアカウントの準備
+### できていること（フェーズ0完了）
+- PROJECT.md / doc 一式の正本整備
+- `prompts/sources.md`（Tier1〜3の情報源リスト）
+- `prompts/traps.md`（fatal/caution 二値化済み・v2）
+- `prompts/chatwork-format.md`（個別通知+サマリの2種構成・確定）
+- `prompts/monthly-research.md` v1.0（3区分化・Core Facts必須化・巡回ログ・ラベル決定表）
+- `prompts/scaffold-application.md` / `prompts/consult-chatgpt.md`
+- ChatGPT Pro 設計監査役レビュー反映済み（4/5）
+
+### これからやること（フェーズ1: 実装・運用準備）
+推奨順 5→4→1→2→3 のうち、**4と5は完了**。残りは1〜3（外部連携）:
+
+1. **Perplexity Computer への登録**（ユーザー作業）
+   - `prompts/monthly-research.md` をカスタムSkill or Scheduled Task として登録
+   - 方針未決: Skill か Scheduled Task か
+2. **GitHub Actions 設置**（Claude Codeが書く）
+   - `data/grants/YYYY-MM.md` push → ChatWork API投稿
+   - 未決事項3点:
+     - ChatWork APIトークン/ルームID取得済みか？
+     - 月次cron方式 vs push検知方式（推奨: push検知）
+     - 投稿スクリプト言語: Python or Bash
+3. **BOT専用ChatWorkアカウントの準備**（ユーザー作業）
+   - 手順書を `doc/` に残す
+
+### 再開時にまずやること
+1. 上記サマリをユーザーに提示
+2. 未決事項3点（ChatWork認証情報・cron/push・Python/Bash）をユーザーに確認
+3. 回答を得たらステップ2（GitHub Actions実装）から着手
