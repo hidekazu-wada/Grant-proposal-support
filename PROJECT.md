@@ -254,6 +254,7 @@ ls logs/
 | 2026-04-09 | data/adopted/ を1案件1フォルダ構成に変更し、6ファイル + evidence/ サブフォルダで管理 | 公式資料スナップショットと社内資料を物理分離し、属人化と「どの版で書いたか不明」を防ぐ |
 | 2026-04-09 | アカウント運用ルール（GビズIDプライム+メンバー、共有禁止、共有通知メール）を doc/account-governance.md で正本化 | 担当者退職リスクへの備えと、JGrants共用禁止への対応 |
 | 2026-04-10 | ChatWork通知を「会議用判断カード + 議事進行サマリ」の2種構成で確定（prompts/chatwork-format.md） | 役員会議当日朝に読み上げて議論する前提。単一スコアではなく2軸評価+仮判断ラベル、投稿順は個別→サマリ、会議後は返信+タスク化で記録（ChatGPT Pro レビュー反映） |
+| 2026-04-10 | 月次リサーチプロンプトを3区分化（採否候補/監視継続/除外）+ Core Facts必須化 + 巡回ログ + ラベル決定表で確定（prompts/monthly-research.md v1.0） | 0件月を許容し無理な候補捻出を防ぐ。締切・補助率・対象者要件には値+原文抜粋+URLを必須化してハルシネーション耐性を確保（ChatGPT Pro レビュー4/5反映）。前月差分とデルタスキャンは運用が回ってから追加 |
 
 ---
 
@@ -264,7 +265,7 @@ ls logs/
 3. ~~**会議体との接続**~~ → 完了（毎月第1金曜朝7時、役員会議冒頭議題）
 4. ~~**申請手順ガイドのフォーマット**~~ → 完了（doc/application-guide-flow.md, doc/account-governance.md, prompts/scaffold-application.md）
 5. ~~**ChatWorkメッセージのフォーマット**~~ → 完了（prompts/chatwork-format.md, prompts/consult-chatgpt.md）
-6. **prompts/ の初版** — Perplexity Computer に渡す月次リサーチプロンプトの叩き台作成
+6. ~~**prompts/ の初版**~~ → 完了（prompts/monthly-research.md v1.0、ChatGPT Pro レビュー4/5反映）
 
 ---
 
@@ -276,10 +277,10 @@ ls logs/
 
 ## 次セッションの再開ポイント
 
-オープンクエスチョン6（Perplexity Computer 月次リサーチプロンプト初版）の設計方針を ChatGPT Pro（設計監査役）に相談中。
+フェーズ0の正本整備は完了。次はフェーズ1（実装・運用準備）。
 
-**再開手順:**
-1. `doc/consultation-monthly-research.md` を開き、末尾の「ChatGPT Pro の回答」欄にユーザーから受け取った回答を貼り付ける
-2. 回答内容をレビューし、反映方針をユーザーと合意
-3. `prompts/monthly-research.md` の初版を作成
-4. 完了したらオープンクエスチョン6をクローズし、フェーズ0完了判定へ
+**直近のTODO:**
+1. `prompts/traps.md` の fatal/caution 二値化（決定表が機械的に効くようにする）
+2. `prompts/monthly-research.md` を Perplexity Computer にカスタムSkillまたはScheduled Task として登録
+3. GitHub Actions 設置（`data/grants/YYYY-MM.md` push → ChatWork API投稿）
+4. BOT専用ChatWorkアカウントの準備
