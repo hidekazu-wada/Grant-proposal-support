@@ -276,5 +276,10 @@ ls logs/
 
 ## 次セッションの再開ポイント
 
-オープンクエスチョン6（prompts/ の月次リサーチプロンプト初版）に着手する。
-Perplexity Computer に渡す、HAMAYOUリゾート向け助成金リサーチプロンプトの叩き台を作る。
+オープンクエスチョン6（Perplexity Computer 月次リサーチプロンプト初版）の設計方針を ChatGPT Pro（設計監査役）に相談中。
+
+**再開手順:**
+1. `doc/consultation-monthly-research.md` を開き、末尾の「ChatGPT Pro の回答」欄にユーザーから受け取った回答を貼り付ける
+2. 回答内容をレビューし、反映方針をユーザーと合意
+3. `prompts/monthly-research.md` の初版を作成
+4. 完了したらオープンクエスチョン6をクローズし、フェーズ0完了判定へ
