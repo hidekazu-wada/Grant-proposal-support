@@ -47,14 +47,15 @@
 
 | 名前       | 状態 | 説明                  |
 | ---------- | ---- | --------------------- |
-| ChatWork通知（GitHub Actions） | 実装済み・未テスト | `data/grants/*.md` push検知 → Python で ChatWork API 投稿 |
+| ChatWork通知（GitHub Actions） | 稼働中 | `data/grants/*.md` push検知 → Python で ChatWork API 投稿 |
+| 月次リサーチ（Perplexity Computer） | 稼働中 | 毎月第1木曜 朝7時（JST）に自動実行。cron ID: c712fb3f |
 
 ---
 
 ## システム全体の流れ
 
 ```
-[月1トリガー: 毎月第1金曜 朝7時（祝日なら前日）/ Perplexity Computer]
+[月1トリガー: 毎月第1木曜 朝7時（祝日なら前日）/ Perplexity Computer]
    ↓
 [Perplexity Computer]
   ├─ HAMAYOUリゾートの会社プロファイルを前提に助成金リサーチ
@@ -135,12 +136,12 @@ Grant-proposal-support/
 
 | 項目 | 内容 |
 |---|---|
-| 連動する会議 | HAMAYOUリゾート 役員会議（毎週金曜） |
+| 連動する会議 | HAMAYOUリゾート 役員会議（毎週木曜） |
 | 参加者 | 取締役・執行役員（必要時に現場管理職） |
-| 通知タイミング | **毎月 第1金曜日 朝7時**（第1金曜が祝日の場合は前日に前倒し） |
-| 議題化 | 第1金曜日の役員会議の **冒頭議題** に固定 |
+| 通知タイミング | **毎月 第1木曜日 朝7時**（第1木曜が祝日の場合は前日に前倒し） |
+| 議題化 | 第1木曜日の役員会議の **冒頭議題** に固定 |
 | 読み方 | 事前読み込みは期待しない。**会議の場で読み上げて議論する** 前提で通知文を設計する |
-| 即決ルール | 内容次第で速決。判断が割れた候補は **翌週金曜の役員会議** に持ち越す |
+| 即決ルール | 内容次第で速決。判断が割れた候補は **翌週木曜の役員会議** に持ち越す |
 | 持ち越し時のサポート | 必要に応じて ChatGPT Pro（助成金アドバイザー）でメリデメ・適合度・申請難易度を取得してから次回会議へ |
 | 速報通知 | 現状なし。月次のみで運用 |
 | 投稿順 | **個別通知（1助成金1メッセージ） → 最後にサマリ通知** の順で投稿。サマリから個別にリンクする |
@@ -256,6 +257,8 @@ ls logs/
 | 2026-04-10 | ChatWork通知を「会議用判断カード + 議事進行サマリ」の2種構成で確定（prompts/chatwork-format.md） | 役員会議当日朝に読み上げて議論する前提。単一スコアではなく2軸評価+仮判断ラベル、投稿順は個別→サマリ、会議後は返信+タスク化で記録（ChatGPT Pro レビュー反映） |
 | 2026-04-10 | 月次リサーチプロンプトを3区分化（採否候補/監視継続/除外）+ Core Facts必須化 + 巡回ログ + ラベル決定表で確定（prompts/monthly-research.md v1.0） | 0件月を許容し無理な候補捻出を防ぐ。締切・補助率・対象者要件には値+原文抜粋+URLを必須化してハルシネーション耐性を確保（ChatGPT Pro レビュー4/5反映）。前月差分とデルタスキャンは運用が回ってから追加 |
 | 2026-04-11 | GitHub Actions（push検知）+ Python スクリプトで ChatWork 通知パイプラインを実装 | トリガーはpush検知（cron方式だとPerplexityの書き込みタイミングとズレるため）。スクリプトはPython（通知文の整形処理がBashでは読みにくいため）。パース失敗時はエラー通知のみ送信 |
+| 2026-04-11 | 定期役員会議を金曜→木曜に変更。通知タイミングも第1木曜朝7時に変更 | 会議体の曜日変更に伴う反映 |
+| 2026-04-11 | Perplexity Computer の定期実行を設定（毎月第1木曜 JST 7:00、cron ID: c712fb3f） | 通しテスト完了後に設定。毎週水曜UTC 22:00で起動し、JST木曜の日付が1〜7の場合のみ実行 |
 
 ---
 
@@ -263,7 +266,7 @@ ls logs/
 
 1. ~~**情報源の確定**~~ → 完了（prompts/sources.md, prompts/traps.md）
 2. ~~**「効果」の数字の定義**~~ → 完了（doc/data-schema.md）
-3. ~~**会議体との接続**~~ → 完了（毎月第1金曜朝7時、役員会議冒頭議題）
+3. ~~**会議体との接続**~~ → 完了（毎月第1木曜朝7時、役員会議冒頭議題）
 4. ~~**申請手順ガイドのフォーマット**~~ → 完了（doc/application-guide-flow.md, doc/account-governance.md, prompts/scaffold-application.md）
 5. ~~**ChatWorkメッセージのフォーマット**~~ → 完了（prompts/chatwork-format.md, prompts/consult-chatgpt.md）
 6. ~~**prompts/ の初版**~~ → 完了（prompts/monthly-research.md v1.0、ChatGPT Pro レビュー4/5反映）
@@ -272,7 +275,7 @@ ls logs/
 
 ## 運用準備TODO
 
-- [ ] **BOT専用ChatWorkアカウントの準備** — 月次通知を投稿する専用アカウントを作成（または `self_unread` 運用で代替）。自分宛て通知が未読にならない問題への対応
+- [x] ~~**BOT専用ChatWorkアカウントの準備**~~ → `self_unread` 運用で代替。追加費用のため専用アカウントは見送り
 
 ---
 
@@ -280,22 +283,20 @@ ls logs/
 
 **「続き」と言われたら、まず以下のサマリをユーザーに提示すること。**
 
-### できていること
+### 全体の状況: フェーズ1完了・本番運用中
 - フェーズ0（要件すり合わせ・正本整備）完了
-- GitHub Actions + Python スクリプト実装済み（`.github/workflows/notify-chatwork.yml` + `scripts/notify_chatwork.py`）
-- GitHub Secrets（`CHATWORK_API_TOKEN` / `CHATWORK_ROOM_ID`）登録済み
-- ChatWork 通知用グループチャット作成済み
+- フェーズ1（実装・運用準備）完了
+- **月次パイプラインが全自動で稼働中**:
+  - Perplexity Computer（毎月第1木曜 朝7時 JST、cron ID: c712fb3f）
+  - → GitHub push → GitHub Actions → ChatWork 通知
+- 通しテスト済み（2026-04月分、6件の候補を正常にパース・投稿）
+- ChatWork投稿は和田さんのアカウント（self_unread）で運用
 
-### これからやること
-1. **テスト用ファイルで動作確認**（Claude Code + ユーザー）
-   - `data/grants/` にテスト用 `.md` を push して、ChatWork に通知が届くか確認
-   - パース結果・投稿フォーマットの微調整
-2. **Perplexity Computer への登録**（ユーザー作業）
-   - `prompts/monthly-research.md` をカスタムSkill or Scheduled Task として登録
-   - 方針未決: Skill か Scheduled Task か
-3. **BOT専用ChatWorkアカウントの準備**（ユーザー作業）
-   - 現状は和田さんのアカウントで投稿。専用アカウントに切り替える場合はトークン差し替え
+### 次回確認ポイント
+- **4月16日（木）朝7時** に初回の自動実行（2026-05月分）が走る
+- 自動実行で問題なく ChatWork に届くか確認
+- 届かなかった場合は Perplexity の cron ログと GitHub Actions のログを確認
 
-### 再開時にまずやること
-1. 上記サマリをユーザーに提示
-2. テスト用ファイルで動作確認に進む
+### 今後の拡張候補（必要に応じて）
+- 前月差分・デルタスキャン機能（運用が回ってから検討）
+- 採用案件の申請進捗トラッキング（data/adopted/ の運用開始時）
