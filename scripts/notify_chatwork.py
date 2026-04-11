@@ -104,14 +104,13 @@ def _extract_list_items(block: str, field_name: str) -> list[str]:
     # テーブル形式: | 採る理由 | ① xxx ② yyy |
     table_val = _extract_field_from_table(block, field_name)
     if table_val:
-        # ①②③ などの丸数字区切り
-        numbered = re.split(r"[①②③④⑤⑥⑦⑧⑨⑩]\s*", table_val)
-        for part in numbered:
-            part = part.strip()
-            if part:
-                items.append(part)
-        if items:
-            return items
+        # 丸数字が区切りとして使われているか判定:
+        # 「① xxx ② yyy」のように空白の後に丸数字が来るパターンで分割
+        # 「候補①」のように直前に文字がある場合は分割しない
+        parts = re.split(r"(?:^|(?<=\s))[①②③④⑤⑥⑦⑧⑨⑩]\s*", table_val)
+        parts = [p.strip() for p in parts if p.strip()]
+        if len(parts) > 1:
+            return parts
         # 普通の文章ならそのまま1項目として返す
         return [table_val]
 
@@ -318,7 +317,15 @@ def build_summary_message(
 
     for i, c in enumerate(candidates):
         label = c.get("仮判断ラベル", "要確認")
-        group_key = label_to_group.get(label, "参考（見送り寄り）")
+        # ラベルに補足説明（括弧）が付いている場合は先頭部分で照合
+        group_key = label_to_group.get(label)
+        if group_key is None:
+            for key in label_to_group:
+                if label.startswith(key):
+                    group_key = label_to_group[key]
+                    break
+            else:
+                group_key = "参考（見送り寄り）"
         groups[group_key].append((i, c))
 
     for group_name, items in groups.items():
