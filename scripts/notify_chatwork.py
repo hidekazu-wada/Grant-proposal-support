@@ -71,8 +71,67 @@ def parse_header(content: str) -> dict:
     return header
 
 
+def _extract_field_from_table(block: str, field_name: str) -> str | None:
+    """テーブル形式（| 項目 | 内容 |）からフィールド値を取得する。"""
+    m = re.search(rf"\|\s*{re.escape(field_name)}\s*\|\s*(.+?)\s*\|", block)
+    if m:
+        value = m.group(1).strip()
+        # Markdown太字を除去
+        value = re.sub(r"\*\*(.+?)\*\*", r"\1", value)
+        return value if value else None
+    return None
+
+
+def _extract_field_from_list(block: str, field_name: str) -> str | None:
+    """リスト形式（- 項目: 内容）からフィールド値を取得する。"""
+    pattern = rf"{re.escape(field_name)}[（(].*?[）)][：:]\s*(.+)|{re.escape(field_name)}[：:]\s*(.+)"
+    m = re.search(pattern, block)
+    if m:
+        value = next((g for g in m.groups() if g), None)
+        return value.strip() if value else None
+    return None
+
+
+def _extract_field(block: str, field_name: str) -> str | None:
+    """テーブル形式・リスト形式の両方に対応してフィールド値を取得する。"""
+    return _extract_field_from_table(block, field_name) or _extract_field_from_list(block, field_name)
+
+
+def _extract_list_items(block: str, field_name: str) -> list[str]:
+    """リスト形式のフィールドから箇条書き項目を取得する。テーブル形式にも対応。"""
+    items = []
+
+    # テーブル形式: | 採る理由 | ① xxx ② yyy |
+    table_val = _extract_field_from_table(block, field_name)
+    if table_val:
+        # ①②③ などの丸数字区切り
+        numbered = re.split(r"[①②③④⑤⑥⑦⑧⑨⑩]\s*", table_val)
+        for part in numbered:
+            part = part.strip()
+            if part:
+                items.append(part)
+        if items:
+            return items
+        # 普通の文章ならそのまま1項目として返す
+        return [table_val]
+
+    # リスト形式: 次のフィールドまでの範囲で箇条書きを取得
+    stop_fields = "採る理由|実行条件|主な負担・制約|罠チェック|不明点"
+    list_stop = rf"(?=[-\-]\s*(?:{stop_fields})[：:]|###|【|\Z)"
+    pattern = rf"{re.escape(field_name)}[：:]?(.*?){list_stop}"
+    m = re.search(pattern, block, re.DOTALL)
+    if m:
+        raw = m.group(1)
+        items = [
+            line.strip()
+            for line in re.findall(r"[-・]\s*(.+)", raw)
+            if not re.match(rf"(?:{stop_fields})[：:]", line.strip())
+        ]
+    return items
+
+
 def parse_candidates(content: str) -> list[dict]:
-    """区分1（採否候補）の各候補をパースする。"""
+    """区分1（採否候補）の各候補をパースする。テーブル形式・リスト形式の両方に対応。"""
     candidates = []
 
     section1_match = re.search(
@@ -88,48 +147,27 @@ def parse_candidates(content: str) -> list[dict]:
     if re.search(r"今月の採否候補[：:]\s*0件", section1):
         return candidates
 
+    # ### 候補① / ### 上段 などで分割
     candidate_blocks = re.split(r"\n(?=###\s)", section1)
+
+    # 候補ブロックを制度名単位でグルーピング（上段/下段が分かれている場合に統合）
+    field_names = ["制度名", "想定使途", "締切", "準備余裕", "金額感",
+                   "事業適合", "仮判断ラベル", "一言でいうと"]
 
     current = {}
     for block in candidate_blocks:
-        fields = {
-            "制度名": r"制度名[：:]\s*(.+)",
-            "想定使途": r"想定使途[（(].*?[）)][：:]\s*(.+)|想定使途[：:]\s*(.+)",
-            "締切": r"締切[（(].*?[）)][：:]\s*(.+)|締切[：:]\s*(.+)",
-            "準備余裕": r"準備余裕[（(].*?[）)][：:]\s*(.+)|準備余裕[：:]\s*(.+)",
-            "金額感": r"金額感[（(].*?[）)][：:]\s*(.+)|金額感[：:]\s*(.+)",
-            "事業適合": r"事業適合[（(].*?[）)][：:]\s*(.+)|事業適合[：:]\s*(.+)",
-            "仮判断ラベル": r"仮判断ラベル[（(].*?[）)][：:]\s*(.+)|仮判断ラベル[：:]\s*(.+)",
-            "一言でいうと": r"一言でいうと[：:]\s*(.+)",
-        }
+        for field_name in field_names:
+            value = _extract_field(block, field_name)
+            if value:
+                current[field_name] = value
 
-        for key, pattern in fields.items():
-            m = re.search(pattern, block)
-            if m:
-                value = next((g for g in m.groups() if g), None)
-                if value:
-                    current[key] = value.strip()
+        for list_field in ["採る理由", "実行条件", "主な負担・制約"]:
+            items = _extract_list_items(block, list_field)
+            if items:
+                current[list_field] = items
 
-        list_stop = r"(?=[-\-]\s*(?:採る理由|実行条件|主な負担・制約|罠チェック|不明点)[：:]|###|【|\Z)"
-        list_fields = {
-            "採る理由": rf"採る理由[：:]?(.*?){list_stop}",
-            "実行条件": rf"実行条件[：:]?(.*?){list_stop}",
-            "主な負担・制約": rf"主な負担・制約[：:]?(.*?){list_stop}",
-        }
-
-        for key, pattern in list_fields.items():
-            m = re.search(pattern, block, re.DOTALL)
-            if m:
-                raw = m.group(1)
-                items = [
-                    line.strip()
-                    for line in re.findall(r"[-・]\s*(.+)", raw)
-                    if not re.match(r"(?:採る理由|実行条件|主な負担・制約)[：:]", line.strip())
-                ]
-                if items:
-                    current[key] = items
-
-        if "制度名" in current and current not in candidates:
+        # 制度名が見つかったら候補として登録
+        if "制度名" in current:
             existing = next(
                 (c for c in candidates if c.get("制度名") == current["制度名"]),
                 None,
@@ -140,14 +178,15 @@ def parse_candidates(content: str) -> list[dict]:
                 candidates.append(current)
                 current = {}
 
-    if current and current not in candidates:
+    # 最後の候補を追加
+    if current and current.get("制度名"):
         existing = next(
-            (c for c in candidates if c.get("制度名") == current.get("制度名")),
+            (c for c in candidates if c.get("制度名") == current["制度名"]),
             None,
         )
         if existing:
             existing.update(current)
-        elif current.get("制度名"):
+        else:
             candidates.append(current)
 
     return candidates
