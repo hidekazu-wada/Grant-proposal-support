@@ -119,16 +119,24 @@ def parse_candidates(content: str) -> list[dict]:
                     current[key] = value.strip()
 
         # リスト形式のフィールド
+        # 次のフィールド名（採る理由/実行条件/主な負担・制約/罠チェック/不明点）で区切る
+        list_stop = r"(?=[-\-]\s*(?:採る理由|実行条件|主な負担・制約|罠チェック|不明点)[：:]|###|【|\Z)"
         list_fields = {
-            "採る理由": r"採る理由(.*?)(?=###|【|$)",
-            "実行条件": r"実行条件(.*?)(?=###|【|$)",
-            "主な負担・制約": r"主な負担・制約(.*?)(?=###|【|$)",
+            "採る理由": rf"採る理由[：:]?(.*?){list_stop}",
+            "実行条件": rf"実行条件[：:]?(.*?){list_stop}",
+            "主な負担・制約": rf"主な負担・制約[：:]?(.*?){list_stop}",
         }
 
         for key, pattern in list_fields.items():
             m = re.search(pattern, block, re.DOTALL)
             if m:
-                items = re.findall(r"[-・]\s*(.+)", m.group(1))
+                # フィールド名自体を含む行を除外してリスト項目だけ取る
+                raw = m.group(1)
+                items = [
+                    line.strip()
+                    for line in re.findall(r"[-・]\s*(.+)", raw)
+                    if not re.match(r"(?:採る理由|実行条件|主な負担・制約)[：:]", line.strip())
+                ]
                 if items:
                     current[key] = items
 
